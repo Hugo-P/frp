@@ -1,0 +1,32 @@
+name: Build FRP Client DLL
+
+on:
+  push:
+    branches: [ "dev", "master" ]
+  workflow_dispatch: # 支援在 GitHub 網頁 Actions 頁面手動點擊按鈕觸發
+
+jobs:
+  build-dll:
+    runs-on: windows-latest # 使用 GitHub 提供的 Windows 雲端環境（已內建 GCC/MinGW）
+
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+
+    - name: Build C-Shared DLL
+      run: |
+        $env:CGO_ENABLED="1"
+        go build -buildmode=c-shared -ldflags="-s -w" -o Frpc.dll .
+
+    - name: Upload DLL Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frpc-dll-package
+        path: |
+          Frpc.dll
+          Frpc.h
